@@ -162,6 +162,13 @@
   .denom-cell .damt{ font-size:11px; color:#8592ba; width:100%; text-align:right; margin-top:2px; }
   .denom-note{ font-size:11.5px; color:#8592ba; margin:8px 0 4px; line-height:1.5; }
 
+  .denom-cell.denom-result-btn{
+    border:none; cursor:pointer; justify-content:center;
+    background:linear-gradient(180deg, var(--gold), var(--gold-dim)); color:var(--navy-950);
+    font-size:13.5px; font-weight:800; letter-spacing:0.3px;
+  }
+  .denom-cell.denom-result-btn:active{ transform:scale(0.95); }
+
   .result-row{
     display:flex; justify-content:space-between; align-items:center;
     padding:13px 0; border-bottom:1px solid var(--line);
@@ -176,6 +183,7 @@
   .result-row.shortage .rvalue.bad{ color:var(--danger); }
 
   .btn-row{ display:flex; gap:10px; margin-top:6px; }
+  #entryBtnRow{ justify-content:flex-end; }
   button.primary{
     flex:1; background:linear-gradient(180deg, var(--gold), var(--gold-dim)); border:none; color:var(--navy-950);
     font-weight:800; font-size:15px; padding:13px; border-radius:12px; cursor:pointer;
@@ -336,13 +344,12 @@
         <div class="denom-cell"><span class="dlabel">₹50</span><input type="number" data-v="50" placeholder="0"></div>
         <div class="denom-cell"><span class="dlabel">₹100</span><input type="number" data-v="100" placeholder="0"></div>
         <div class="denom-cell"><span class="dlabel">₹200</span><input type="number" data-v="200" placeholder="0"></div>
-        <div class="denom-cell"><span class="dlabel">₹500</span><input type="number" data-v="500" placeholder="0"></div>
+        <div class="denom-cell" id="denom500Cell"><span class="dlabel">₹500</span><input type="number" data-v="500" id="denom500Input" placeholder="0"></div>
+        <button type="button" class="denom-cell denom-result-btn" id="denom500ArrowBtn" title="Result Page par jayein">Result</button>
       </div>
-      <div class="denom-note">₹500 ke notes ka total → Cash Deposit mein jayega. Baki saare notes ka total → In Hand Today mein jayega.</div>
     </section>
 
-    <div class="btn-row">
-      <button class="primary" id="saveBtn">Save Day</button>
+    <div class="btn-row" id="entryBtnRow">
       <button class="secondary danger" id="resetBtn" title="Is date ki entered values clear karein">⟲ Reset</button>
     </div>
   </div>
@@ -357,10 +364,14 @@
       <div class="result-row exp"><span class="rlabel">Cash Expense</span><span class="rvalue" id="rExpCash">₹0</span></div>
       <div class="result-row exp"><span class="rlabel">Online Expense</span><span class="rvalue" id="rExpOnline">₹0</span></div>
       <div class="result-row pos highlight"><span class="rlabel">POS Sale</span><span class="rvalue" id="rPosSale">₹0</span></div>
-      <div class="result-row highlight"><span class="rlabel">In Hand Today</span><span class="rvalue" id="rInHand">₹0</span></div>
+      <div class="result-row highlight" style="display:none;"><span class="rlabel">In Hand Today</span><span class="rvalue" id="rInHand">₹0</span></div>
       <div class="result-row highlight"><span class="rlabel">Balance Total (Niche)</span><span class="rvalue" id="rNicheTotal">₹0</span></div>
       <div class="result-row shortage highlight"><span class="rlabel">Shortage</span><span class="rvalue" id="rShortage">₹0</span></div>
     </section>
+
+    <div class="btn-row">
+      <button class="primary" id="saveBtn">Save Day</button>
+    </div>
   </div>
 
   <section class="history">
@@ -577,7 +588,8 @@ dateInput.addEventListener('change', ()=>{
   renderHistory();
 });
 
-el('saveBtn').addEventListener('click', ()=>{
+// "Save Day" action — button lives on Page 2 (Result page) only.
+function saveCurrentEntry(){
   const records = getRecords();
   const v = currentValues();
   const rec = {}; entryIds.forEach(id => rec[id] = v[id]); rec.denom = v.denom;
@@ -587,7 +599,8 @@ el('saveBtn').addEventListener('click', ()=>{
   statusPill.textContent = 'Saved ✓';
   statusPill.classList.add('saved');
   renderHistory();
-});
+}
+el('saveBtn').addEventListener('click', saveCurrentEntry);
 el('resetBtn').addEventListener('click', ()=>{
   const ok = confirm('Is date (' + dateInput.value + ') ki entered form values clear ho jayengi. Saved History is se safe rahegi. Reset karein?');
   if(!ok) return;
@@ -636,21 +649,67 @@ el('historyBody').addEventListener('click', (e)=>{
 // Tabs
 const tabResultBtn = el('tabResultBtn'), tabEntryBtn = el('tabEntryBtn');
 const pageResult = el('pageResult'), pageEntry = el('pageEntry');
-tabResultBtn.addEventListener('click', ()=>{
+function goToResultPage(){
   tabResultBtn.classList.add('active'); tabEntryBtn.classList.remove('active');
   pageResult.classList.add('active'); pageEntry.classList.remove('active');
   calc();
-});
-tabEntryBtn.addEventListener('click', ()=>{
+}
+function goToEntryPage(){
   tabEntryBtn.classList.add('active'); tabResultBtn.classList.remove('active');
   pageEntry.classList.add('active'); pageResult.classList.remove('active');
-});
+}
+tabResultBtn.addEventListener('click', goToResultPage);
+tabEntryBtn.addEventListener('click', goToEntryPage);
+
+// ₹500 box → Right Arrow: pressing the keyboard Right Arrow while inside the
+// ₹500 cash-count field jumps straight to the Result page (Page 2), so the
+// counted total shows immediately. The on-screen → button next to the field
+// does the exact same thing, and works with a tap on mobile where there's no
+// physical arrow key.
+const denom500Input = el('denom500Input');
+const denom500ArrowBtn = el('denom500ArrowBtn');
+if(denom500Input){
+  denom500Input.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight'){
+      e.preventDefault();
+      goToResultPage();
+    }
+  });
+}
+if(denom500ArrowBtn){
+  denom500ArrowBtn.addEventListener('click', ()=>{ goToResultPage(); });
+}
 
 // Init
 dateInput.value = todayStr();
 activeDate = dateInput.value;
 loadDate(dateInput.value);
 renderHistory();
+
+// Auto-save after 12am: if the app is left open across midnight WHILE the
+// person is sitting on today's own entry, that entry is auto-saved (same
+// rule as hasMeaningfulData — empty days are not saved) and the screen rolls
+// over to the new date automatically, just like manually changing the date
+// would. Checked every 30s so the rollover happens quickly after midnight
+// without needing a page refresh.
+// IMPORTANT: this tracks the real calendar day separately from `activeDate`
+// (which changes the moment someone opens an older date in History). Without
+// that separation, simply browsing yesterday's entry would look like a
+// "midnight rollover" and the app would keep snapping back to today.
+let currentCalendarDay = todayStr();
+setInterval(()=>{
+  const nowStr = todayStr();
+  if(nowStr !== currentCalendarDay){
+    if(dateInput.value === currentCalendarDay){
+      autoSaveDate(currentCalendarDay);
+      activeDate = nowStr;
+      dateInput.value = nowStr;
+      loadDate(nowStr);
+      renderHistory();
+    }
+    currentCalendarDay = nowStr;
+  }
+}, 30000);
 
 // Calculator — floating icon top-right of header, one tap open/close.
 (function(){
