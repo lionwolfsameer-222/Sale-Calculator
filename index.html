@@ -351,13 +351,13 @@
   <div class="page" id="pageResult">
     <section class="card">
       <h2>Today's Result — <span id="resultDate"></span></h2>
+      <div class="result-row highlight"><span class="rlabel">Cash Deposit</span><span class="rvalue" id="rCashDeposit">₹0</span></div>
       <div class="result-row"><span class="rlabel">Paytm</span><span class="rvalue" id="rPaytm">₹0</span></div>
       <div class="result-row"><span class="rlabel">Other (GPay+Swiggy+Zomato)</span><span class="rvalue" id="rOther">₹0</span></div>
-      <div class="result-row exp"><span class="rlabel">Cash Expense</span><span class="rvalue" id="rExpCash">₹0</span></div>
       <div class="result-row exp"><span class="rlabel">Online Expense</span><span class="rvalue" id="rExpOnline">₹0</span></div>
+      <div class="result-row exp"><span class="rlabel">Cash Expense</span><span class="rvalue" id="rExpCash">₹0</span></div>
       <div class="result-row pos highlight"><span class="rlabel">POS Sale</span><span class="rvalue" id="rPosSale">₹0</span></div>
       <div class="result-row highlight"><span class="rlabel">Opening Balance</span><span class="rvalue" id="rInHand">₹0</span></div>
-      <div class="result-row highlight"><span class="rlabel">Deposit Amount</span><span class="rvalue" id="rCashDeposit">₹0</span></div>
       <div class="result-row highlight"><span class="rlabel">Balance Total (Niche)</span><span class="rvalue" id="rNicheTotal">₹0</span></div>
       <div class="result-row shortage highlight"><span class="rlabel">Shortage</span><span class="rvalue" id="rShortage">₹0</span></div>
     </section>
@@ -727,7 +727,7 @@ renderHistory();
 // that separation, simply browsing yesterday's entry would look like a
 // "midnight rollover" and the app would keep snapping back to today.
 let currentCalendarDay = todayStr();
-setInterval(()=>{
+function checkDateRollover(){
   const nowStr = todayStr();
   if(nowStr !== currentCalendarDay){
     if(dateInput.value === currentCalendarDay){
@@ -740,7 +740,17 @@ setInterval(()=>{
     }
     currentCalendarDay = nowStr;
   }
-}, 30000);
+}
+// Regular timer catches the rollover while the app is open and active.
+setInterval(checkDateRollover, 15000);
+// Mobile/desktop browsers heavily throttle or pause setInterval once the tab
+// is backgrounded or the phone screen locks — that's the main reason the
+// midnight rollover could silently miss. Re-checking the moment the app
+// becomes visible/focused again (e.g. phone unlocked next morning) closes
+// that gap and forces an immediate, correct rollover + auto-save.
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'visible') checkDateRollover(); });
+window.addEventListener('focus', checkDateRollover);
+window.addEventListener('pageshow', checkDateRollover);
 
 // Calculator — floating icon top-right of header, one tap open/close.
 (function(){
