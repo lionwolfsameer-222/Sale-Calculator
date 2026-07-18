@@ -707,10 +707,13 @@ if(denom500ArrowBtn){
   denom500ArrowBtn.addEventListener('click', ()=>{ goToResultPage(); });
 }
 
-// Init — reopen on whichever date was on-screen when the page was last
-// closed/refreshed (with whatever half-entered values it had), instead of
-// always jumping to today. First-ever open (no history yet) defaults to today.
-dateInput.value = getLastOpenDate() || todayStr();
+// Init — every fresh open / refresh always lands on TODAY'S date, never on
+// whichever date the person happened to be viewing when they last closed the
+// app. Viewing/editing an older date (via History) is a temporary look-back
+// only — it is never remembered across a refresh or app restart. Any
+// half-typed draft for TODAY specifically is still safely restored by
+// loadDate() below (drafts are saved per-date as you type).
+dateInput.value = todayStr();
 activeDate = dateInput.value;
 saveLastOpenDate(dateInput.value);
 loadDate(dateInput.value);
