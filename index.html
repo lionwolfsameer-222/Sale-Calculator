@@ -54,6 +54,66 @@
   }
   .calc-toggle:active{ transform:scale(0.95); }
 
+  .cash-toggle{
+    position:absolute; top:58px; right:14px;
+    width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(180deg, var(--good), #2c6b4c);
+    border:none; color:#08140d; font-size:19px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; box-shadow:0 2px 8px rgba(0,0,0,0.35);
+    z-index:30;
+  }
+  .cash-toggle:active{ transform:scale(0.95); }
+
+  .cash-panel{
+    display:none;
+    position:absolute; top:104px; right:14px;
+    width:min(92vw, 330px);
+    max-height:min(72vh, 560px);
+    background:var(--navy-900);
+    border:1px solid var(--good);
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    z-index:40;
+    overflow-y:auto;
+    max-width:calc(100vw - 20px);
+  }
+  .cash-panel.open{ display:block; }
+  .cash-panel-date{
+    font-size:11.5px; color:#9fb0e0; text-align:center; margin-bottom:9px;
+    font-weight:700; letter-spacing:0.6px; text-transform:uppercase;
+    padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  .cash-row{
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    background:var(--navy-950); border:1px solid var(--navy-700); border-radius:9px;
+    padding:7px 9px; margin-bottom:7px;
+  }
+  .cash-row .cn-label{ font-size:13.5px; font-weight:700; color:var(--good); width:42px; flex:0 0 auto; }
+  .cash-row .cn-x{ font-size:12.5px; color:#8592ba; flex:0 0 auto; }
+  .cash-row input.cn-count{
+    width:50px; min-width:0; flex:0 1 50px; background:var(--navy-900); border:1px solid var(--navy-700);
+    border-radius:7px; color:var(--cream); text-align:center; font-size:13.5px; padding:5px 2px;
+  }
+  .cash-row input.cn-count:focus{ outline:none; border-color:var(--good); }
+  .cash-row .cn-eq{ font-size:12.5px; color:#8592ba; flex:0 0 auto; }
+  .cash-row .cn-amt{
+    font-size:13.5px; font-weight:700; color:var(--cream); flex:1 1 auto; min-width:56px;
+    text-align:right; font-variant-numeric:tabular-nums;
+  }
+  .cash-total-row{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-top:4px; padding-top:10px; border-top:1px solid var(--line);
+  }
+  .cash-total-row .ctlabel{ font-size:12.5px; color:#e4e8f7; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+  .cash-total-row .ctamt{ font-size:18px; font-weight:800; color:var(--good); font-variant-numeric:tabular-nums; }
+  .cash-clear-btn{
+    width:100%; margin-top:10px; padding:9px; border-radius:9px; border:1px solid var(--navy-700);
+    background:var(--navy-800); color:var(--danger); font-weight:700; font-size:12px; cursor:pointer;
+  }
+  .cash-clear-btn:active{ transform:scale(0.98); }
+
   .calc-panel{
     display:none;
     position:absolute; top:58px; right:14px;
@@ -286,6 +346,58 @@
       </svg>
     </div>
   </div>
+
+  <button class="cash-toggle" id="cashToggle" title="Cash Note Calculator">
+    <svg viewBox="0 0 24 24" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="6" width="20" height="12" rx="2.2" fill="none" stroke="#08140d" stroke-width="1.7"/>
+      <circle cx="12" cy="12" r="3.1" fill="none" stroke="#08140d" stroke-width="1.5"/>
+      <circle cx="5.4" cy="9" r="0.9" fill="#08140d"/>
+      <circle cx="18.6" cy="9" r="0.9" fill="#08140d"/>
+      <circle cx="5.4" cy="15" r="0.9" fill="#08140d"/>
+      <circle cx="18.6" cy="15" r="0.9" fill="#08140d"/>
+    </svg>
+  </button>
+  <div class="cash-panel" id="cashPanel">
+    <div class="cash-panel-date" id="cashPanelDate">—</div>
+
+    <div class="cash-row" data-denom="10">
+      <span class="cn-label">₹10</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+    <div class="cash-row" data-denom="20">
+      <span class="cn-label">₹20</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+    <div class="cash-row" data-denom="50">
+      <span class="cn-label">₹50</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+    <div class="cash-row" data-denom="100">
+      <span class="cn-label">₹100</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+    <div class="cash-row" data-denom="200">
+      <span class="cn-label">₹200</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+    <div class="cash-row" data-denom="500">
+      <span class="cn-label">₹500</span><span class="cn-x">×</span>
+      <input type="number" class="cn-count" inputmode="numeric" min="0" step="1" placeholder="0">
+      <span class="cn-eq">=</span><span class="cn-amt">₹0</span>
+    </div>
+
+    <div class="cash-total-row">
+      <span class="ctlabel">Total</span>
+      <span class="ctamt" id="cashNoteTotal">₹0</span>
+    </div>
+    <button type="button" class="cash-clear-btn" id="cashNoteClearBtn">⟲ Is Date Ka Cash Count Clear Karein</button>
+  </div>
+
   <h1>HEALTHY CHEF</h1>
   <div class="sub">Cash &amp; Sales Summary</div>
   <div class="date-row">
@@ -902,6 +1014,109 @@ window.addEventListener('pageshow', checkDateRollover);
   }
   resizeHandle.addEventListener('pointerup', endResize);
   resizeHandle.addEventListener('pointercancel', endResize);
+})();
+
+// Cash Note Calculator — small floating icon just below the arithmetic
+// calculator. Counts notes (₹10/20/50/100/200/500), auto-saves per date,
+// and always follows the SAME date as the main app's date field — so
+// changing the date (manually, or via the app's own midnight rollover)
+// automatically shows that date's note-count, exactly like the main entry
+// form does. Entering a previous date in the main date field is therefore
+// enough to see that previous date's cash-note data too.
+(function(){
+  const CASH_CALC_KEY = STORAGE_KEY + '_cashNoteCalc';
+  function getCashCalcData(){ try{ return JSON.parse(localStorage.getItem(CASH_CALC_KEY)) || {}; }catch(e){ return {}; } }
+  function saveCashCalcData(d){ try{ localStorage.setItem(CASH_CALC_KEY, JSON.stringify(d)); }catch(e){} }
+
+  const cashToggle = el('cashToggle');
+  const cashPanel = el('cashPanel');
+  const cashPanelDate = el('cashPanelDate');
+  const cashNoteTotalEl = el('cashNoteTotal');
+  const cashRows = Array.from(document.querySelectorAll('#cashPanel .cash-row'));
+
+  function fmtCash(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  function computeCashTotal(){
+    let total = 0;
+    cashRows.forEach(row=>{
+      const denom = parseFloat(row.dataset.denom);
+      const count = parseFloat(row.querySelector('.cn-count').value) || 0;
+      const amt = denom * count;
+      row.querySelector('.cn-amt').textContent = fmtCash(amt);
+      total += amt;
+    });
+    cashNoteTotalEl.textContent = fmtCash(total);
+    return total;
+  }
+
+  function loadCashForDate(dateStr){
+    const data = getCashCalcData();
+    const rec = data[dateStr] || {};
+    cashRows.forEach(row=>{
+      const count = rec[row.dataset.denom];
+      row.querySelector('.cn-count').value = count ? count : '';
+    });
+    cashPanelDate.textContent = dateStr;
+    computeCashTotal();
+  }
+
+  function saveCashForDate(dateStr){
+    const data = getCashCalcData();
+    const rec = {};
+    let any = false;
+    cashRows.forEach(row=>{
+      const count = parseFloat(row.querySelector('.cn-count').value) || 0;
+      if(count) any = true;
+      rec[row.dataset.denom] = count;
+    });
+    if(any){ data[dateStr] = rec; } else { delete data[dateStr]; }
+    saveCashCalcData(data);
+  }
+
+  cashRows.forEach(row=>{
+    row.querySelector('.cn-count').addEventListener('input', ()=>{
+      computeCashTotal();
+      saveCashForDate(dateInput.value);
+    });
+  });
+
+  cashToggle.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    cashPanel.classList.toggle('open');
+  });
+  document.addEventListener('click', (e)=>{
+    if(cashPanel.classList.contains('open') && !cashPanel.contains(e.target) && e.target !== cashToggle){
+      cashPanel.classList.remove('open');
+    }
+  });
+  cashPanel.addEventListener('click', (e)=> e.stopPropagation());
+
+  el('cashNoteClearBtn').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    const ok = confirm('Is date (' + dateInput.value + ') ka cash note count clear ho jayega. Clear karein?');
+    if(!ok) return;
+    cashRows.forEach(row=> row.querySelector('.cn-count').value = '');
+    computeCashTotal();
+    saveCashForDate(dateInput.value);
+  });
+
+  // Follows the main date field's own "change" event (manual date picks,
+  // including typing a previous date to view its saved cash count).
+  dateInput.addEventListener('change', ()=>{ loadCashForDate(dateInput.value); });
+
+  // The main app's midnight-rollover sets dateInput.value directly via JS,
+  // which does not fire a native "change" event — so a light poll keeps
+  // this panel in sync with that auto date-change too, same as everywhere
+  // else in the app.
+  let lastCashSyncedDate = dateInput.value;
+  setInterval(()=>{
+    if(dateInput.value !== lastCashSyncedDate){
+      lastCashSyncedDate = dateInput.value;
+      loadCashForDate(dateInput.value);
+    }
+  }, 4000);
+
+  loadCashForDate(dateInput.value);
 })();
 
 // Hidden Admin Panel — tap the header logo 7 times (within ~2.5s) to open a
