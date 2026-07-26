@@ -102,6 +102,24 @@
     font-size:13.5px; font-weight:700; color:var(--cream); flex:1 1 auto; min-width:56px;
     text-align:right; font-variant-numeric:tabular-nums;
   }
+  .lock-row{
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    background:var(--navy-950); border:1px solid var(--gold-dim); border-radius:9px;
+    padding:7px 9px; margin-bottom:10px;
+  }
+  .lock-row .lock-label{ font-size:12px; font-weight:700; color:var(--gold); flex:0 0 auto; letter-spacing:0.3px; }
+  .lock-row input.lock-input{
+    flex:1 1 auto; min-width:0; background:var(--navy-900); border:1px solid var(--navy-700);
+    border-radius:7px; color:var(--cream); text-align:right; font-size:14px; font-weight:700; padding:6px 8px;
+  }
+  .lock-row input.lock-input:focus{ outline:none; border-color:var(--gold); }
+  .lock-row input.lock-input:disabled{ color:var(--gold); opacity:1; border-color:var(--gold-dim); background:rgba(242,201,76,0.08); }
+  .lock-row .lock-btn{
+    flex:0 0 auto; border:1px solid var(--gold-dim); background:var(--navy-800); color:var(--gold);
+    font-weight:700; font-size:11.5px; padding:7px 9px; border-radius:7px; cursor:pointer; white-space:nowrap;
+  }
+  .lock-row .lock-btn.locked{ background:linear-gradient(180deg, var(--gold), var(--gold-dim)); color:var(--navy-950); }
+  .lock-row .lock-btn:active{ transform:scale(0.96); }
   .cash-total-row{
     display:flex; justify-content:space-between; align-items:center;
     margin-top:4px; padding-top:10px; border-top:1px solid var(--line);
@@ -359,6 +377,12 @@
   </button>
   <div class="cash-panel" id="cashPanel">
     <div class="cash-panel-date" id="cashPanelDate">—</div>
+
+    <div class="lock-row">
+      <span class="lock-label">🔒 Lock Amount</span>
+      <input type="number" id="lockAmountInput" class="lock-input" inputmode="decimal" step="any" placeholder="0">
+      <button type="button" id="lockToggleBtn" class="lock-btn">Lock</button>
+    </div>
 
     <div class="cash-row" data-denom="10">
       <span class="cn-label">₹10</span><span class="cn-x">×</span>
@@ -1033,8 +1057,17 @@ window.addEventListener('pageshow', checkDateRollover);
   const cashPanelDate = el('cashPanelDate');
   const cashNoteTotalEl = el('cashNoteTotal');
   const cashRows = Array.from(document.querySelectorAll('#cashPanel .cash-row'));
+  const lockAmountInput = el('lockAmountInput');
+  const lockToggleBtn = el('lockToggleBtn');
+  let isLocked = false;
 
   function fmtCash(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  function updateLockUI(){
+    lockAmountInput.disabled = isLocked;
+    lockToggleBtn.textContent = isLocked ? '🔓 Unlock' : '🔒 Lock';
+    lockToggleBtn.classList.toggle('locked', isLocked);
+  }
 
   function computeCashTotal(){
     let total = 0;
@@ -1045,6 +1078,9 @@ window.addEventListener('pageshow', checkDateRollover);
       row.querySelector('.cn-amt').textContent = fmtCash(amt);
       total += amt;
     });
+    // Lock Amount box's value is always part of the grand Total shown below,
+    // whether it's currently locked or still being edited.
+    total += parseFloat(lockAmountInput.value) || 0;
     cashNoteTotalEl.textContent = fmtCash(total);
     return total;
   }
@@ -1056,6 +1092,9 @@ window.addEventListener('pageshow', checkDateRollover);
       const count = rec[row.dataset.denom];
       row.querySelector('.cn-count').value = count ? count : '';
     });
+    lockAmountInput.value = rec.lock ? rec.lock : '';
+    isLocked = !!rec.locked;
+    updateLockUI();
     cashPanelDate.textContent = dateStr;
     computeCashTotal();
   }
@@ -1069,6 +1108,10 @@ window.addEventListener('pageshow', checkDateRollover);
       if(count) any = true;
       rec[row.dataset.denom] = count;
     });
+    const lockVal = parseFloat(lockAmountInput.value) || 0;
+    if(lockVal) any = true;
+    rec.lock = lockVal;
+    rec.locked = isLocked;
     if(any){ data[dateStr] = rec; } else { delete data[dateStr]; }
     saveCashCalcData(data);
   }
@@ -1078,6 +1121,22 @@ window.addEventListener('pageshow', checkDateRollover);
       computeCashTotal();
       saveCashForDate(dateInput.value);
     });
+  });
+
+  // Lock Amount box — any value typed here counts into the Total straight
+  // away (like the note fields). "Lock" just disables the box afterwards so
+  // it can't be accidentally changed; the value stays exactly as it was
+  // until "Unlock" is tapped again to edit it.
+  lockAmountInput.addEventListener('input', ()=>{
+    computeCashTotal();
+    saveCashForDate(dateInput.value);
+  });
+  lockToggleBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    isLocked = !isLocked;
+    updateLockUI();
+    saveCashForDate(dateInput.value);
+    if(!isLocked) lockAmountInput.focus();
   });
 
   cashToggle.addEventListener('click', (e)=>{
@@ -1093,9 +1152,12 @@ window.addEventListener('pageshow', checkDateRollover);
 
   el('cashNoteClearBtn').addEventListener('click', (e)=>{
     e.stopPropagation();
-    const ok = confirm('Is date (' + dateInput.value + ') ka cash note count clear ho jayega. Clear karein?');
+    const ok = confirm('Is date (' + dateInput.value + ') ka cash note count aur Lock Amount clear ho jayega. Clear karein?');
     if(!ok) return;
     cashRows.forEach(row=> row.querySelector('.cn-count').value = '');
+    lockAmountInput.value = '';
+    isLocked = false;
+    updateLockUI();
     computeCashTotal();
     saveCashForDate(dateInput.value);
   });
